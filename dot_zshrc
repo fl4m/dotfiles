@@ -1,0 +1,61 @@
+# ===== history =====
+HISTFILE=~/.histfile
+HISTSIZE=10000
+SAVEHIST=10000
+setopt SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE HIST_REDUCE_BLANKS
+
+bindkey -e
+
+# ===== completion =====
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+# ===== zinit (installed by chezmoi run_once_before_30-system) =====
+ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
+source "$ZINIT_HOME/zinit.zsh"
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+
+# prompt
+zinit ice compile'(pure|async).zsh' pick'async.zsh' src'pure.zsh'
+zinit light sindresorhus/pure
+
+# syntax highlighting + completion init
+zinit wait lucid light-mode for \
+    atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
+    zdharma-continuum/fast-syntax-highlighting
+
+# kubectl completion (plugin-free; runs after compinit)
+zinit wait lucid has'kubectl' for \
+    atload'source <(kubectl completion zsh); compdef kc=kubectl' \
+    zdharma-continuum/null
+
+# ===== tools =====
+# Order matters: fzf binds Ctrl-R, Ctrl-T, Alt-C; atuin re-binds Ctrl-R afterwards.
+# --disable-up-arrow: keep Ctrl-R for atuin's search TUI, but leave the Up arrow
+# as plain line-by-line zsh history (~/.histfile) instead of opening atuin.
+command -v fzf    >/dev/null && source <(fzf --zsh) 2>/dev/null
+command -v atuin  >/dev/null && eval "$(atuin init zsh --disable-up-arrow)"
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
+
+# ===== env =====
+export EDITOR=nvim
+export VISUAL=nvim
+typeset -U path PATH
+path=("$HOME/.local/bin" "$HOME/.opencode/bin" $path)
+
+# ===== aliases =====
+alias vim=nvim
+alias vi=nvim
+alias la="ls -Alh --color=auto"
+alias ll="ls -lh --color=auto"
+alias kc="kubectl"
+alias kcx="kubectl config use-context"
+alias gst="git status"
+alias gl1="git log -n 1"
+alias gl3="git log -n 3"
+alias gco="git checkout"
+alias gam="git commit --amend --no-edit"
+alias ip="ip --color"
+alias docker="podman"
+alias rq="resolvectl query"

@@ -1,0 +1,4 @@
+README.md
+LICENSE
+# chezmoi_modify_manager source-of-truth files (read by modify_ scripts, never deployed)
+**/*.src.ini

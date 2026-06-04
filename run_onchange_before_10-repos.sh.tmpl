@@ -1,0 +1,47 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+# Adds third-party dnf repos. Re-runs only when this script's hash changes.
+set -euo pipefail
+
+echo "==> Adding Vivaldi repo..."
+sudo tee /etc/yum.repos.d/vivaldi.repo > /dev/null <<EOF
+[vivaldi]
+name=Vivaldi
+baseurl=https://repo.vivaldi.com/archive/rpm/x86_64
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.vivaldi.com/archive/linux_signing_key.pub
+EOF
+
+echo "==> Adding VS Code repo..."
+sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+sudo tee /etc/yum.repos.d/vscode.repo > /dev/null <<EOF
+[code]
+name=Visual Studio Code
+baseurl=https://packages.microsoft.com/yumrepos/vscode
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+EOF
+
+echo "==> Adding Microsoft Defender for Endpoint repo..."
+# Microsoft publishes mdatp per Fedora release but lags new releases (e.g. the
+# fedora/43 and fedora/44 prod repos exist but ship no mdatp yet). Pick the
+# newest prod repo that actually contains mdatp, falling back from this release.
+mde_ver=""
+for v in $(seq "$(rpm -E %fedora)" -1 41); do
+  if curl -sfL "https://packages.microsoft.com/fedora/$v/prod/Packages/m/" 2>/dev/null | grep -q 'mdatp-.*\.rpm'; then
+    mde_ver="$v"; break
+  fi
+done
+: "${mde_ver:=42}"
+echo "    using packages.microsoft.com/fedora/$mde_ver/prod for mdatp"
+sudo tee /etc/yum.repos.d/microsoft-prod.repo > /dev/null <<EOF
+[packages-microsoft-com-prod]
+name=Microsoft Production
+baseurl=https://packages.microsoft.com/fedora/$mde_ver/prod/
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+EOF
+{{- end }}

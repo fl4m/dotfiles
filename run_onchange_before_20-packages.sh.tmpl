@@ -1,0 +1,25 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+# Installs dnf packages, dnf groups, and flatpaks.
+# Re-runs only when the rendered package list changes.
+set -euo pipefail
+
+echo "==> Installing dnf packages..."
+sudo dnf install -y {{ .packages.dnf | join " " }}
+
+echo "==> Installing Microsoft Defender for Endpoint (mdatp)..."
+# Separate, non-fatal step: mdatp comes from the Microsoft prod repo, which can
+# lag new Fedora releases. Don't let its absence abort base provisioning.
+sudo dnf install -y mdatp \
+  || echo "WARNING: mdatp not installed (Microsoft repo may lag this Fedora release); install manually later."
+
+echo "==> Installing dnf groups..."
+sudo dnf group install -y {{ .packages.dnf_groups | join " " }}
+
+echo "==> Ensuring flathub remote..."
+flatpak remote-add --user --if-not-exists flathub \
+  https://dl.flathub.org/repo/flathub.flatpakrepo
+
+echo "==> Installing flatpaks..."
+flatpak install -y --user --noninteractive flathub {{ .packages.flatpak | join " " }}
+{{- end }}

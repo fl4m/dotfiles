@@ -1,0 +1,38 @@
+packages:
+  dnf:
+    # base
+    - zsh
+    - keepassxc
+    - tmux
+    - jq
+    - vivaldi-stable
+    - code
+    - jetbrains-mono-fonts
+    - git
+    - git-lfs
+    - git-credential-libsecret
+    - NetworkManager-openvpn
+    # cli
+    - fzf
+    - ripgrep
+    - gopass
+    - atuin
+    - zoxide
+    - neovim
+    # kube
+    - kubernetes1.36-client
+    - kustomize
+    - k9s
+    # cloud
+    - azure-cli
+    - awscli2
+    - opentofu
+    - glab
+    # virt
+    - edk2-ovmf
+    - swtpm
+  dnf_groups:
+    - virtualization
+  flatpak:
+    - com.slack.Slack
+    - com.spotify.Client

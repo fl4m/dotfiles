@@ -1,0 +1,20 @@
+#!/usr/bin/env chezmoi_modify_manager
+# Manage keepassxc.ini via chezmoi_modify_manager: the .src.ini is the source of
+# truth, but the directives below leave volatile/sensitive entries to the live
+# system so they are never committed to this (public) repo nor cause churn.
+source auto
+
+# KeeShare keypair -- "Own" contains the PRIVATE key. Never commit or apply it.
+ignore "KeeShare" "Active"
+ignore "KeeShare" "Foreign"
+ignore "KeeShare" "Own"
+
+# App-managed config-format version; changes across KeePassXC releases.
+ignore "General" "ConfigVersion"
+
+# Recently used databases/paths -- machine-specific state + path leakage.
+ignore regex "General" "Last.*"
+
+# Window geometry/state -- machine-specific.
+ignore regex "GUI" ".*Geometry"
+ignore regex "GUI" ".*State"

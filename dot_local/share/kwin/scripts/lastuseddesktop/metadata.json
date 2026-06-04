@@ -1,0 +1,12 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Id": "lastuseddesktop",
+        "Name": "Switch to Last Used Desktop",
+        "Description": "Meta+Tab switches to the most recently used virtual desktop; rapid repeated presses cycle through all desktops in most-recently-used order.",
+        "Version": "1.0",
+        "License": "MIT",
+        "EnabledByDefault": false
+    },
+    "X-Plasma-API": "javascript"
+}

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Vivaldi (Private Window)
+Exec=/usr/bin/vivaldi-stable --incognito
+Icon=vivaldi
+Terminal=false
+StartupNotify=true
+NoDisplay=true
+X-KDE-GlobalAccel-CommandShortcut=true

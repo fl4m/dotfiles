@@ -1,0 +1,30 @@
+{{- /*
+  All identifying values are prompted on first `chezmoi init` and persisted
+  in chezmoi's state DB. The defaults below are generic placeholders — supply
+  your own values at the prompt (or non-interactively, see below). Re-runs do
+  not re-prompt.
+
+  Non-interactive bootstrap (e.g. scripted multi-machine setup):
+    chezmoi init --apply fl4m \
+      --promptString git.name="Your Name" \
+      --promptString git.email="you@example.com" \
+      ...
+*/ -}}
+{{- $name              := promptStringOnce . "git.name"             "Git user name"                                 "Your Name"              -}}
+{{- $email             := promptStringOnce . "git.email"            "Git email"                                     "you@example.com" -}}
+{{- /* `base` strips any leading directory so the prompt key (which persists the
+       full path back into [data.keepass].database) self-heals across re-runs
+       instead of re-prepending ~/keepass/ each time. */ -}}
+{{- $kdbName           := promptStringOnce . "keepass.database"     "KeePassXC database filename in ~/keepass/"     "yourdb.kdbx" | base -}}
+
+{{- $kdbPath := printf "%s/keepass/%s" .chezmoi.homeDir $kdbName -}}
+
+[data.git]
+    name  = "{{ $name }}"
+    email = "{{ $email }}"
+
+[data.keepass]
+    database = "{{ $kdbPath }}"
+    gpgGroup = "GPG Keys"
+    vpnGroup = "VPN"
+    kubeEntry = "Kubeconfig"

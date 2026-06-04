@@ -1,0 +1,25 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-*
+
+# Local chezmoi state / logs
+.chezmoiremove
+chezmoistate.boltdb
+*.log
+
+# Secrets (defensive — never commit decrypted secrets)
+*.kdbx
+*.key
+*.pem
+*.pfx
+id_rsa
+id_ed25519
+.aws/credentials

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Slack
+GenericName=Slack Client for Linux
+Exec=flatpak run com.slack.Slack
+Icon=com.slack.Slack
+StartupWMClass=Slack
+StartupNotify=false
+Terminal=false
+Type=Application
+Version=1.0
+Categories=Network;InstantMessaging;
+X-GNOME-Autostart-enabled=true
+X-KDE-autostart-after=panel

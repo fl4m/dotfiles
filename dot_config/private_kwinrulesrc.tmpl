@@ -1,0 +1,31 @@
+[General]
+count=4
+rules=a1b2c3d4-0001-4000-8000-000000000001,a1b2c3d4-0001-4000-8000-000000000002,a1b2c3d4-0001-4000-8000-000000000003,a1b2c3d4-0001-4000-8000-000000000004
+
+[a1b2c3d4-0001-4000-8000-000000000001]
+Description=Slack to Comm
+desktops={{ (index .kde.desktops 1).uuid }}
+desktopsrule=2
+title=Slack
+titlematch=2
+
+[a1b2c3d4-0001-4000-8000-000000000002]
+Description=Teams to Comm
+desktops={{ (index .kde.desktops 1).uuid }}
+desktopsrule=2
+title=Microsoft Teams
+titlematch=2
+
+[a1b2c3d4-0001-4000-8000-000000000003]
+Description=WhatsApp to Private
+desktops={{ (index .kde.desktops 2).uuid }}
+desktopsrule=2
+title=WhatsApp
+titlematch=2
+
+[a1b2c3d4-0001-4000-8000-000000000004]
+Description=Outlook to Comm
+desktops={{ (index .kde.desktops 1).uuid }}
+desktopsrule=2
+title=Outlook
+titlematch=2

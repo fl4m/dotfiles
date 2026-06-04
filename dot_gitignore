@@ -1,0 +1,17 @@
+# Global git ignore (referenced by ~/.gitconfig core.excludesfile)
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-*
+
+# Direnv
+.envrc
+.direnv/

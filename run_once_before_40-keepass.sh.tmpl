@@ -1,0 +1,115 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+# Imports GPG keys, OpenVPN connections, and the kubeconfig from KeePassXC.
+# Prompts for the DB password only once, only if at least one step is needed.
+set -euo pipefail
+
+GPG_UID={{ .git.email | quote }}
+KDB={{ .keepass.database | quote }}
+GPG_GROUP={{ .keepass.gpgGroup | quote }}
+VPN_GROUP={{ .keepass.vpnGroup | quote }}
+KUBE_ENTRY={{ .keepass.kubeEntry | quote }}
+
+if [ ! -f "$KDB" ]; then
+  echo "==> KeePassXC DB not present at $KDB; skipping GPG/VPN import."
+  exit 0
+fi
+
+need_gpg=false
+need_vpn=false
+need_kube=false
+gpg --list-secret-keys "$GPG_UID" >/dev/null 2>&1 || need_gpg=true
+nmcli -t -f TYPE connection show | grep -qx vpn || need_vpn=true
+[ -f "$HOME/.kube/config" ] || need_kube=true
+
+if ! $need_gpg && ! $need_vpn && ! $need_kube; then
+  exit 0
+fi
+
+read -rsp "KeePassXC password for $KDB: " KPXC_PW; echo
+kpxc() { printf '%s\n' "$KPXC_PW" | keepassxc-cli "$@"; }
+
+if $need_gpg; then
+  echo "==> Importing GPG keys from KeePassXC group '$GPG_GROUP'..."
+  while IFS= read -r entry; do
+    [ -z "$entry" ] && continue
+    case "$entry" in */) continue ;; esac   # skip subgroup headers
+    full="$GPG_GROUP/$entry"
+    while IFS= read -r att; do
+      [ -z "$att" ] && continue
+      echo "    $full -> $att"
+      kpxc attachment-export -q --stdout "$KDB" "$full" "$att" \
+        | gpg --import 2>/dev/null || true
+    done < <(kpxc show -q --show-attachments "$KDB" "$full" \
+      | awk '/^Attachments:/{f=1;next} f&&NF{n=$0;sub(/^  /,"",n);sub(/ \([0-9].*\)$/,"",n);print n}')
+  done < <(kpxc ls -q -R -f "$KDB" "$GPG_GROUP")
+
+  echo "==> Trusting all imported secret keys ultimately..."
+  while IFS= read -r fpr; do
+    [ -z "$fpr" ] && continue
+    printf '5\ny\n' | gpg --batch --command-fd 0 --edit-key "$fpr" trust quit 2>/dev/null || true
+  done < <(gpg --list-secret-keys --with-colons 2>/dev/null \
+    | awk -F: '/^sec/{want=1} /^fpr/{if(want){print $10; want=0}}')
+fi
+
+if $need_vpn; then
+  echo "==> Importing OpenVPN connections from KeePassXC group '$VPN_GROUP'..."
+  while IFS= read -r entry; do
+    [ -z "$entry" ] && continue
+    case "$entry" in */) continue ;; esac   # skip subgroup headers
+    full="$VPN_GROUP/$entry"
+    name="${entry##*/}"
+
+    mapfile -t ovpns < <(kpxc show -q --show-attachments "$KDB" "$full" \
+      | awk '/^Attachments:/{f=1;next} f&&NF{n=$0;sub(/^  /,"",n);sub(/ \([0-9].*\)$/,"",n);print n}' \
+      | grep -i '\.ovpn$' || true)
+    [ ${#ovpns[@]} -eq 0 ] && continue   # not a VPN entry
+
+    user=$(kpxc show -q -s -a UserName "$KDB" "$full" 2>/dev/null || true)
+
+    i=0
+    for att in "${ovpns[@]}"; do
+      conn="$name"; [ $i -gt 0 ] && conn="$name-$i"; i=$((i+1))
+      if nmcli -t -f NAME connection show | grep -qxF "$conn"; then
+        echo "    '$conn' already present; skipping."
+        continue
+      fi
+      echo "    $full -> $att  =>  '$conn'"
+      VPN_DIR=$(mktemp -d)
+      VPN_FILE="$VPN_DIR/${conn}.ovpn"
+      kpxc attachment-export -q "$KDB" "$full" "$att" "$VPN_FILE" >/dev/null
+      # `nmcli connection import` derives the connection id from the .ovpn file
+      # name, which can be a temp/garbage name. Capture the UUID it creates and
+      # rename the connection to the intended title.
+      before=$(nmcli -t -f UUID connection show)
+      nmcli connection import type openvpn file "$VPN_FILE"
+      shred -u "$VPN_FILE"; rmdir "$VPN_DIR"
+      uuid=$(comm -13 <(printf '%s\n' "$before" | sort) \
+                      <(nmcli -t -f UUID connection show | sort) | head -1)
+      nmcli connection modify "$uuid" connection.id "$conn"
+      [ -n "$user" ] && nmcli connection modify "$uuid" \
+        +vpn.data "username=$user,password-flags=1"
+      # Split tunnel: keep server-pushed subnet routes, but don't let the VPN
+      # become the default route (NetworkManager would otherwise add one).
+      nmcli connection modify "$uuid" ipv4.never-default yes ipv6.never-default yes
+    done
+  done < <(kpxc ls -q -R -f "$KDB" "$VPN_GROUP")
+  echo "    VPN password(s): enter once via the Plasma NM applet and choose 'Save'."
+fi
+
+if $need_kube; then
+  echo "==> Importing kubeconfig from KeePassXC entry '$KUBE_ENTRY'..."
+  att=$(kpxc show -q --show-attachments "$KDB" "$KUBE_ENTRY" \
+    | awk '/^Attachments:/{f=1;next} f&&NF{n=$0;sub(/^  /,"",n);sub(/ \([0-9].*\)$/,"",n);print n; exit}')
+  if [ -z "$att" ]; then
+    echo "    No attachment found on '$KUBE_ENTRY'; skipping."
+  else
+    echo "    $KUBE_ENTRY -> $att"
+    mkdir -p "$HOME/.kube"
+    kpxc attachment-export -q --stdout "$KDB" "$KUBE_ENTRY" "$att" > "$HOME/.kube/config"
+    chmod 600 "$HOME/.kube/config"
+  fi
+fi
+
+unset KPXC_PW
+{{- end }}

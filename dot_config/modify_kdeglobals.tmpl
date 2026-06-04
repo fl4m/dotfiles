@@ -1,0 +1,20 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env chezmoi_modify_manager
+# Manage kdeglobals via chezmoi_modify_manager. Only the General browser/accent
+# toggles and file-dialog prefs are tracked; the color scheme and Look-and-Feel
+# theme are intentionally NOT managed and left to the live system.
+source auto
+
+# Color scheme / theme are owned by Plasma + the distro Look-and-Feel package.
+ignore regex "Colors:.*" ".*"
+ignore regex "ColorEffects:.*" ".*"
+ignore section "WM"
+ignore section "KDE"
+
+# Wallpaper-derived accent value and its hash are volatile, machine-specific.
+ignore "General" "AccentColor"
+ignore "General" "ColorSchemeHash"
+
+# File-dialog speedbar pixel width is UI state.
+ignore "KFileDialog Settings" "Speedbar Width"
+{{- end }}

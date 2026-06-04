@@ -1,0 +1,25 @@
+[user]
+	name = {{ .git.name }}
+	email = {{ .git.email }}
+	signingkey = {{ .git.email }}
+[commit]
+	gpgsign = true
+[pull]
+	ff = only
+[core]
+	excludesfile = ~/.gitignore
+[credential]
+	helper = libsecret
+[merge]
+	tool = vimdiff
+[init]
+	defaultBranch = main
+[push]
+	autoSetupRemote = true
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[mergetool "vscode"]
+	cmd = code --wait $MERGED

@@ -1,0 +1,8 @@
+kde:
+  desktops:
+    - name: Dev
+      uuid: "{a1b2c3d4-d001-4000-8000-000000000001}"
+    - name: Comm
+      uuid: "{a1b2c3d4-d002-4000-8000-000000000002}"
+    - name: Private
+      uuid: "{a1b2c3d4-d003-4000-8000-000000000003}"

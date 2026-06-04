@@ -1,0 +1,24 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+# KDE Plasma live reload -- runs after dotfiles in an active KDE session.
+# All KDE config files are now managed declaratively by chezmoi:
+#   - static configs as dot_config/private_*rc
+#   - kwinrc, kdeglobals, dolphinrc, kglobalshortcutsrc via chezmoi_modify_manager
+# This script only nudges running components to pick up the new files; on a fresh
+# first login everything is read at session start, so failures here are harmless.
+set -euo pipefail
+
+echo "Reloading KWin (desktops, night color, plugins)..."
+qdbus-qt6 org.kde.KWin /KWin reconfigure 2>/dev/null || true
+
+echo "Refreshing the desktop service cache (for the command shortcuts)..."
+kbuildsycoca6 >/dev/null 2>&1 || true
+
+# NOTE: the command shortcuts (kglobalshortcutsrc + the konsole-tmux.desktop /
+# vivaldi-private.desktop launchers) and the Meta+Tab last-used-desktop binding
+# are loaded by kwin_wayland, which owns org.kde.kglobalaccel and only reads them
+# at session start. There is no safe live reload on Wayland (restarting the
+# compositor would disrupt the session), so these shortcuts take effect only
+# after the next log out / log in.
+echo "Done. (Log out/in to activate the Meta+Return, Meta+Tab and Ctrl+Alt+P shortcuts.)"
+{{- end }}

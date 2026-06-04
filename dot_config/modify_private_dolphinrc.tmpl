@@ -1,0 +1,10 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env chezmoi_modify_manager
+# Manage dolphinrc via chezmoi_modify_manager. Tracks stable view/preview prefs
+# while leaving app-version and view-properties timestamps to the live system.
+source auto
+
+# Bumped by Dolphin across releases / on view changes -- volatile.
+ignore "General" "Version"
+ignore "General" "ViewPropsTimestamp"
+{{- end }}

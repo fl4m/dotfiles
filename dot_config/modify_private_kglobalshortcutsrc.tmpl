@@ -1,0 +1,32 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env chezmoi_modify_manager
+# Manage kglobalshortcutsrc via chezmoi_modify_manager. The global shortcuts are
+# almost entirely KDE defaults, so everything is left to the live system; only
+# the handful of deliberate customisations are enforced via `set` below.
+no-warn-multiple-key-matches
+source auto
+
+# Leave every default shortcut to the live system / KDE defaults.
+ignore regex ".*" ".*"
+
+# Deliberate customisations to enforce on every machine:
+# Meta+Tab drives the "lastuseddesktop" KWin script (most-recently-used desktop
+# switching) instead of plain next-desktop, so free it from the stock action and
+# bind the script's registered shortcut.
+set "kwin" "Switch to Next Desktop" ",,Switch to Next Desktop" separator="="
+set "kwin" "Switch to Last Used Desktop" "Meta+Tab,Meta+Tab,Switch to Last Used Desktop" separator="="
+
+# Launch a Konsole tmux session with Meta+Return. Plasma 6 dropped khotkeys; the
+# modern equivalent is a "command shortcut": a launcher .desktop carrying
+# X-KDE-GlobalAccel-CommandShortcut=true (see dot_local/share/applications/
+# konsole-tmux.desktop) plus the _launch binding below. KDE stores these under a
+# NESTED group [services][<id>.desktop] (cmm addresses it as "services][...");
+# the value is just the key sequence. kwin_wayland owns org.kde.kglobalaccel and
+# reads this at session start, so a re-login is needed for changes to take effect.
+set "services][konsole-tmux.desktop" "_launch" "Meta+Return" separator="="
+
+# Open a new Vivaldi private window with Ctrl+Alt+P -- another command shortcut
+# (see dot_local/share/applications/vivaldi-private.desktop, which runs Vivaldi's
+# stock `--incognito` action). Same session-start caveat as Meta+Return above.
+set "services][vivaldi-private.desktop" "_launch" "Ctrl+Alt+P" separator="="
+{{- end }}

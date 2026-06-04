@@ -1,0 +1,17 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env chezmoi_modify_manager
+# Manage ksmserverrc via chezmoi_modify_manager. KDE writes machine-specific
+# session state here (screen counts, saved-session blobs), so everything is left
+# to the live system; only loginMode is enforced via `set` below.
+source auto
+
+# Leave all KDE-written session state to the live system.
+ignore regex ".*" ".*"
+
+# Start every login with an empty session instead of restoring the previous one.
+# Autostart entries (Slack, the Vivaldi PWAs, KeePassXC) are the single source of
+# truth for what launches at login; this avoids double-launches and the focus /
+# active-desktop churn caused by session restore replaying window placement
+# alongside the kwinrulesrc desktop rules.
+set "General" "loginMode" "emptySession" separator="="
+{{- end }}

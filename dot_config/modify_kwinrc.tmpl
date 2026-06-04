@@ -1,0 +1,19 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env chezmoi_modify_manager
+# Manage kwinrc via chezmoi_modify_manager. The .src.ini holds the static prefs;
+# the directives below pin desktop UUIDs from data and leave machine-specific
+# state (tiling layouts, display scale) to the live system.
+source auto
+
+# Pinned virtual-desktop UUIDs from .chezmoidata/kde.yaml so kwinrulesrc rules
+# (which reference the same braced UUIDs) bind to the correct desktops.
+{{- range $i, $d := .kde.desktops }}
+set "Desktops" "Id_{{ add $i 1 }}" "{{ $d.uuid }}" separator="="
+{{- end }}
+
+# Tiling layout sections key on live desktop + screen UUIDs -- machine-specific.
+ignore regex "Tiling.*" ".*"
+
+# Display scale is hardware/monitor-specific.
+ignore "Xwayland" "Scale"
+{{- end }}
