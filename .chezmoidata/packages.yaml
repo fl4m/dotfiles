@@ -12,6 +12,7 @@ packages:
     - git-lfs
     - git-credential-libsecret
     - NetworkManager-openvpn
+    - nmap
     # cli
     - fzf
     - ripgrep
