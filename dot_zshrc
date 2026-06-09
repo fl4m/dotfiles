@@ -59,3 +59,13 @@ alias gam="git commit --amend --no-edit"
 alias ip="ip --color"
 alias docker="podman"
 alias rq="resolvectl query"
+
+# ===== keybindings (last, so plugins/tools can't override them) =====
+# Interactive shells use the emacs keymap ('bindkey -e' above). Home/End:
+# tmux+Konsole send ^[[1~ / ^[[4~; the ^[[H / ^[[F variants are for bare
+# terminals. Ctrl+Backspace sends ^H here, so it deletes a word.
+bindkey -M emacs '^[[1~' beginning-of-line   # Home
+bindkey -M emacs '^[[4~' end-of-line         # End
+bindkey -M emacs '^[[H'  beginning-of-line   # Home (bare terminal)
+bindkey -M emacs '^[[F'  end-of-line         # End  (bare terminal)
+bindkey -M emacs '^H'    backward-kill-word  # Ctrl+Backspace -> delete word
