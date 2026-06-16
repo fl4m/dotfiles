@@ -45,11 +45,9 @@ if $need_gpg; then
   done < <(kpxc ls -q -R -f "$KDB" "$GPG_GROUP")
 
   echo "==> Trusting all imported secret keys ultimately..."
-  while IFS= read -r fpr; do
-    [ -z "$fpr" ] && continue
-    printf '5\ny\n' | gpg --batch --command-fd 0 --edit-key "$fpr" trust quit 2>/dev/null || true
-  done < <(gpg --list-secret-keys --with-colons 2>/dev/null \
-    | awk -F: '/^sec/{want=1} /^fpr/{if(want){print $10; want=0}}')
+  gpg --list-secret-keys --with-colons 2>/dev/null \
+    | awk -F: '/^fpr/{print $10":6:"}' \
+    | gpg --import-ownertrust 2>/dev/null || true
 fi
 
 if $need_vpn; then
